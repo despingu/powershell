@@ -496,6 +496,21 @@ namespace PnP.PowerShell.Commands.Utilities
             }
         }
 
+        public static async Task<TeamChannelMember> AddChannelMemberAsync(string accessToken, HttpClient httpClient,string groupId, string channelId, string userUPN, string role)
+        {
+            var user = await GraphHelper.GetAsync<User>(httpClient, $"v1.0/users/{userUPN}", accessToken);
+            TeamChannelMember channelMember = new TeamChannelMember()
+            {
+                UserIdentifier = $"https://{PnPConnection.Current.GraphEndPoint}/v1.0/users('{user.Id}')"
+            };
+
+            if (role.ToLower() == "owner")
+            {
+                channelMember.Roles = new List<string> { "owner" };
+            }
+            return await GraphHelper.PostAsync<TeamChannelMember>(httpClient, $"/teams/{groupId}/channels/{channelId}/members", channelMember, accessToken);
+        }
+
         public static async Task PostMessageAsync(HttpClient httpClient, string accessToken, string groupId, string channelId, TeamChannelMessage message)
         {
             await GraphHelper.PostAsync(httpClient, $"v1.0/teams/{groupId}/channels/{channelId}/messages", message, accessToken);
